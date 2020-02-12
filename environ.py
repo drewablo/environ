@@ -7,6 +7,7 @@ import adafruit_bme280
 from math import cos
 from math import sin
 from math import radians
+from time import time
 
 i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
 
@@ -53,6 +54,21 @@ tvocPrevious = pressureData
 
 r = 30 #outer gauge radius
 w = 10 #width of guage
+class Timer:
+    def __init__(self,timer_period):
+        self.timer_period = timer_period
+        self.update_timer()
+    def update_timer(self):
+        self.last_time = time()*100
+        self.timer_expires = self.last_time + self.timer_period
+    def has_timer_expired(self):
+        if time()*100 > self.timer_expires:
+            self.update_timer()
+            return 1
+        else:
+            return 0
+
+timer = Timer(5)
 
 def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
 	OldRange = (OldMax - OldMin)  
@@ -97,13 +113,13 @@ while True:
 	humidData = translate(bme280.humidity, TK, TK)
 	pressureData = translate(bme280.pressure, TK, TK)
 	
-	
-	gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
-	gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
-	gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
-	
-	gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
-	gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
+	if has_timer_expired():
+        gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
+        gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
+        gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
+        
+        gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
+        gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
 	
 	tempPrevious = eCO2Data
 	humidPrevious = tvocData
