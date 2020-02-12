@@ -21,9 +21,12 @@ display = board.DISPLAY
 splash = displayio.Group(max_size=15)
  
 # Palette for gauge bitmap
-palette = displayio.Palette(2)
+palette = displayio.Palette(4)
 palette[0] = 0x000000
-palette[1] = 0x97f3e8
+palette[1] = 0x97f3e8 #lightturq
+palette[2] = 0x50b0a8 #medturk
+palette[3] - 0x408890 #darkturq
+
 palette.make_transparent(0)
  
 # Create gauge bitmap
@@ -48,10 +51,7 @@ pressurePrevious = tempData
 eCO2Previous = humidData
 tvocPrevious = pressureData
 
-gaugeCenterX = 8
-gaugeCenterY = 0
-
-r = 60 #outer radius
+r = 30 #outer gauge radius
 w = 10 #width of guage
 
 def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
@@ -62,7 +62,9 @@ def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
 	return newVal
 
 def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
-	if newVal > oldVal:
+	if newVal == oldVal:
+        pass
+    elif newVal > oldVal:
 		for i in range(180, newVal, -1):
 			outerX = round(cos(radians(i)) * r)
 			outerY = round(sin(radians(i)) * r)
@@ -83,7 +85,8 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
     else: 
         pass
 	
-gaugeDraw(89, r+2, w+4, gaugeCenterX, 0)
+gaugeDraw(90, 46, r+2, w+4, 40, 40, 4)
+gaugeDraw(180, 91, r+2, w+4, 40, 40, 0)
 
 while True:
 	eCO2Data = translate(sgp30.eCO2, TK, TK)
