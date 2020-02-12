@@ -4,6 +4,9 @@ import displayio
 import busio
 import adafruit_sgp30
 import adafruit_bme280
+from math import cos
+from math import sin
+from math import radians
 
 i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
 
@@ -54,29 +57,31 @@ w = 10 #width of guage
 def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
 	OldRange = (OldMax - OldMin)  
 	NewRange = (NewMax - NewMin)  
-	val = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-	print(val)
-	return val
+	newVal = (((val - OldMin) * NewRange) / OldRange) + NewMin
+	print(newVal)
+	return newVal
 
 def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 	if newVal > oldVal:
-		for i in range(180, newVal):
-			outerX = int(round(math.cos(i)*r))
-			outerY = int(round(math.sin(i)*r))
-			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = color
-			for q in range(w):
-				x = int(round(cos(i)*(r-q)))
-				y = int(round(sin(i)*(r-q)))
-				gaugeBmp[(gaugeCenterX + x), y] = color
-	else:
-		for _i in range(oldVal, (newVal - 1)):
-			outerX = int(round(math.cos(_i)  r))
-			outerY = int(round(math.sin(_i) * r))
+		for i in range(180, newVal, -1):
+			outerX = round(cos(radians(i)) * r)
+			outerY = round(sin(radians(i)) * r)
 			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
-			for _q in range(w):
-				x = int(round(cos(_i)*(r - _q)))
-				y = int(round(sin(_i)*(r - _q)))
-				gaugeBmp[(gaugeCenterX + x), y] = 0
+			for q in range(1,w):
+				x = round(cos(radians(i)) * (r-q))
+				y = round(sin(radians(i)) * (r-q))
+				gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
+	elif newVal < oldVal:
+		for a in range(oldVal, (newVal - 1), -1):
+			outerX = round(cos(raidans(a)) * r)
+			outerY = round(sin(radians(a)) * r)
+			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
+			for b in range(1,w):
+				x = round(cos(radians(a)) * (r - b))
+				y = round(sin(radians(a)) * (r - b))
+				gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = 0
+    else: 
+        pass
 	
 gaugeDraw(89, r+2, w+4, gaugeCenterX, 0)
 
@@ -89,68 +94,16 @@ while True:
 	humidData = translate(bme280.humidity, TK, TK)
 	pressureData = translate(bme280.pressure, TK, TK)
 	
-	if 
 	
-	gaugeDraw(tempData, r, w, 40, 40, 1)
-	gaugeDraw(eCO2Data, r, w, 80, 80, 1)
-	gaugeDraw(eCO2Data, r, w, 120, 120, 1)
+	gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
+	gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
+	gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
 	
-	gaugeDraw(eCO2Data, r, w, 100, 40, 1)
-	gaugeDraw(tvocData, r, w, 140, 80, 1)
+	gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
+	gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
 	
 	tempPrevious = eCO2Data
 	humidPrevious = tvocData
 	pressurePrevious = tempData
 	eCO2Previous = humidData
 	tvocPrevious = pressureData
-		
-	
-	
------------------------
-from time import sleep
-# generate random integer values
-from random import seed
-from random import randint
-import math
-# seed random number generator
-seed(1)
-# generate some integers
-
-def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
-	OldRange = (OldMax - OldMin)  
-	NewRange = (NewMax - NewMin)  
-	val = (((val - OldMin) * NewRange) / OldRange) + NewMin
-	print(val)
-	return val
-	
-def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
-	if newVal > oldVal:
-		for i in range(180, newVal, -1):
-			outerX = int(math.cos(i)*r)
-			outerY = int(math.sin(i)*r)
-			print("A: " + str((gaugeCenterX + outerX)) + ", " + str((gaugeCenterY + outerY)))
-			for q in range(1,w):
-				x = int(math.cos(i)*(r-q))
-				y = int(math.sin(i)*(r-q))
-				print(str(gaugeCenterX + x) +", " + str(gaugeCenterY + y))
-	else:
-		for a in range(oldVal, (newVal - 1), -1):
-			outerX = int(math.cos(a) * r)
-			outerY = int(math.sin(a) * r)
-			print(outerY)
-			sleep(2)
-			print("B: " + str((gaugeCenterX + outerX)) + ", " + str((gaugeCenterY + outerY)))
-			for b in range(1,w):
-				x = int(math.cos(a)*(r - b))
-				y = int(math.sin(a)*(r - b))
-				print(str(gaugeCenterX + x) +", " + str(gaugeCenterY + y))
-	sleep(1)
-for i in range(10):
-	rando = randint(90, 180)
-	rando2 = randint(90, 180)
-	print("rando: "+str(rando))
-	print("rando2: "+str(rando2))
-	gaugeDraw(rando, rando2, 60, 10, 40, 40, 2)
-	sleep(1)
-	
-	
