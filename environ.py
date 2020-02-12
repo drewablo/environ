@@ -19,7 +19,14 @@ bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
 bme280.sea_level_pressure = 1013.25
 
 display = board.DISPLAY
-splash = displayio.Group(max_size=15)
+splash = displayio.Group(max_size=50)
+
+# Background
+BGbitmap = displayio.Bitmap(320, 240, 1)
+BGpalette = displayio.Palette(1)
+BGpalette[0] = 0x50b0a8
+BGsprite = displayio.TileGrid(BGbitmap, x=0, y=0, pixel_shader=BGpalette)
+splash.append(BGsprite)
 
 # Palette for gauge bitmap
 palette = displayio.Palette(4)
@@ -84,7 +91,7 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 		for i in range(180, newVal, -1):
 		outerX = round(cos(radians(i)) * r)
 		outerY = round(sin(radians(i)) * r)
-		gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
+		gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = color
 		for q in range(1,w):
 			x = round(cos(radians(i)) * (r-q))
 			y = round(sin(radians(i)) * (r-q))
@@ -93,14 +100,14 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 		for a in range(oldVal, (newVal - 1), -1):
 			outerX = round(cos(radians(a)) * r)
 			outerY = round(sin(radians(a)) * r)
-			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
+			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = color
 		for b in range(1,w):
 			x = round(cos(radians(a)) * (r - b))
 			y = round(sin(radians(a)) * (r - b))
-			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = 0
+			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
 
-gaugeDraw(90, 46, r+2, w+4, 40, 40, 4)
-gaugeDraw(180, 91, r+2, w+4, 40, 40, 0)
+
+gaugeDraw(180, 46, r+2, w+4, 40, 40, 0)
 
 while True:
 	eCO2Data = translate(sgp30.eCO2, TK, TK)
