@@ -91,7 +91,7 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 				gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
 	elif newVal < oldVal:
 		for a in range(oldVal, (newVal - 1), -1):
-			outerX = round(cos(raidans(a)) * r)
+			outerX = round(cos(radians(a)) * r)
 			outerY = round(sin(radians(a)) * r)
 			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
 			for b in range(1,w):
