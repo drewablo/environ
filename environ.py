@@ -20,7 +20,7 @@ bme280.sea_level_pressure = 1013.25
 
 display = board.DISPLAY
 splash = displayio.Group(max_size=15)
- 
+
 # Palette for gauge bitmap
 palette = displayio.Palette(4)
 palette[0] = 0x000000
@@ -29,7 +29,7 @@ palette[2] = 0x50b0a8 #medturk
 palette[3] - 0x408890 #darkturq
 
 palette.make_transparent(0)
- 
+
 # Create gauge bitmap
 gaugeBmp = displayio.Bitmap(display.width, display.height, len(palette))
 gauge = displayio.TileGrid(gaugeBmp, pixel_shader=palette)
@@ -55,18 +55,18 @@ tvocPrevious = pressureData
 r = 30 #outer gauge radius
 w = 10 #width of guage
 class Timer:
-    def __init__(self,timer_period):
-        self.timer_period = timer_period
-        self.update_timer()
-    def update_timer(self):
-        self.last_time = time()*100
-        self.timer_expires = self.last_time + self.timer_period
-    def has_timer_expired(self):
-        if time()*100 > self.timer_expires:
-            self.update_timer()
-            return 1
-        else:
-            return 0
+	def __init__(self,timer_period):
+		self.timer_period = timer_period
+		self.update_timer()
+	def update_timer(self):
+		self.last_time = time()*100
+		self.timer_expires = self.last_time + self.timer_period
+	def has_timer_expired(self):
+	if time()*100 > self.timer_expires:
+		self.update_timer()
+		return 1
+	else:
+		return 0
 
 timer = Timer(5)
 
@@ -79,28 +79,26 @@ def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
 
 def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 	if newVal == oldVal:
-        pass
-    elif newVal > oldVal:
+		pass
+	elif newVal > oldVal:
 		for i in range(180, newVal, -1):
-			outerX = round(cos(radians(i)) * r)
-			outerY = round(sin(radians(i)) * r)
-			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
-			for q in range(1,w):
-				x = round(cos(radians(i)) * (r-q))
-				y = round(sin(radians(i)) * (r-q))
-				gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
+		outerX = round(cos(radians(i)) * r)
+		outerY = round(sin(radians(i)) * r)
+		gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
+		for q in range(1,w):
+			x = round(cos(radians(i)) * (r-q))
+			y = round(sin(radians(i)) * (r-q))
+			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
 	elif newVal < oldVal:
 		for a in range(oldVal, (newVal - 1), -1):
 			outerX = round(cos(radians(a)) * r)
 			outerY = round(sin(radians(a)) * r)
 			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = 0
-			for b in range(1,w):
-				x = round(cos(radians(a)) * (r - b))
-				y = round(sin(radians(a)) * (r - b))
-				gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = 0
-    else: 
-        pass
-	
+		for b in range(1,w):
+			x = round(cos(radians(a)) * (r - b))
+			y = round(sin(radians(a)) * (r - b))
+			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = 0
+
 gaugeDraw(90, 46, r+2, w+4, 40, 40, 4)
 gaugeDraw(180, 91, r+2, w+4, 40, 40, 0)
 
@@ -112,15 +110,15 @@ while True:
 	tempData = translate((int(tempData) * 1.8 + 32), TK, TK)
 	humidData = translate(bme280.humidity, TK, TK)
 	pressureData = translate(bme280.pressure, TK, TK)
-	
+
 	if has_timer_expired():
-        gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
-        gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
-        gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
-        
-        gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
-        gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
-	
+		gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
+		gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
+		gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
+
+		gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
+		gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
+
 	tempPrevious = eCO2Data
 	humidPrevious = tvocData
 	pressurePrevious = tempData
