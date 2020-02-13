@@ -7,8 +7,9 @@ from math import radians
 from time import time
 from time import sleep
 from random import randint
+
 display = board.DISPLAY
-splash = displayio.Group(max_size=100)
+splash = displayio.Group(max_size=50)
 
 # Background
 BGbitmap = displayio.Bitmap(display.width, display.height, 1)
@@ -23,7 +24,6 @@ palette[0] = 0x000000
 palette[1] = 0x97f3e8 #lightturq
 palette[2] = 0x50b0a8 #medturk
 palette[3] - 0x408890 #darkturq
-
 palette.make_transparent(0)
 
 # Create gauge bitmap
@@ -34,18 +34,13 @@ splash.append(gauge)
 # show splash group
 display.show(splash)
 
-def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
-    OldRange = (OldMax - OldMin)
-    NewRange = (NewMax - NewMin)
-    newVal = (((val - OldMin) * NewRange) / OldRange) + NewMin
-    print(newVal)
-    return newVal
+r = 70 #outer gauge radius
+w = 20 #width of guage
 
 def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
     if newVal == oldVal:
         pass
     elif newVal > oldVal:
-        print("newVal > oldVal")
         for i in range(oldVal, newVal):
             outerX = round(cos(radians(i)) * r) + gaugeCenterX
             outerY = round(sin(radians(i)) * r) + gaugeCenterY
@@ -55,19 +50,15 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
                 y = round(sin(radians(i)) * (r-q)) + gaugeCenterY
                 gaugeBmp[x,y] = color
     elif newVal < oldVal:
-        print("newVal < oldVal")
         for a in range(oldVal, newVal, -1):
             outerX = round(cos(radians(a)) * r) + gaugeCenterX
             outerY = round(sin(radians(a)) * r) + gaugeCenterY
             gaugeBmp[outerX,outerY] = 3
-            print("OK?")
             for b in range(w):
                 x = round(cos(radians(a)) * (r - b)) + gaugeCenterX
                 y = round(sin(radians(a)) * (r - b)) + gaugeCenterY
                 gaugeBmp[x,y] = 3
 
-r = 70 #outer gauge radius
-w = 20 #width of guage
 firstRowX = 95
 firstRowY = 95
 
