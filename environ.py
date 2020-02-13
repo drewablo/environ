@@ -69,11 +69,11 @@ class Timer:
 		self.last_time = time()*100
 		self.timer_expires = self.last_time + self.timer_period
 	def has_timer_expired(self):
-	if time()*100 > self.timer_expires:
-		self.update_timer()
-		return 1
-	else:
-		return 0
+		if time()*100 > self.timer_expires:
+			self.update_timer()
+			return 1
+		else:
+			return 0
 
 timer = Timer(5)
 
@@ -89,25 +89,25 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
 		pass
 	elif newVal > oldVal:
 		for i in range(180, newVal, -1):
-		outerX = round(cos(radians(i)) * r)
-		outerY = round(sin(radians(i)) * r)
-		gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = color
-		for q in range(1,w):
-			x = round(cos(radians(i)) * (r-q))
-			y = round(sin(radians(i)) * (r-q))
-			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
+			outerX = round(cos(radians(i)) * r) + gaugeCenterX
+			outerY = round(sin(radians(i)) * r) + gaugeCenterY
+			gaugeBmp[outerX,outerY] = color
+			for q in range(1,w):
+				x = round(cos(radians(i)) * (r-q)) + gaugeCenterX
+				y = round(sin(radians(i)) * (r-q)) + gaugeCenterY
+				gaugeBmp[x,y] = color
 	elif newVal < oldVal:
 		for a in range(oldVal, (newVal - 1), -1):
-			outerX = round(cos(radians(a)) * r)
-			outerY = round(sin(radians(a)) * r)
-			gaugeBmp[(gaugeCenterX + outerX), (gaugeCenterY + outerY)] = color
-		for b in range(1,w):
-			x = round(cos(radians(a)) * (r - b))
-			y = round(sin(radians(a)) * (r - b))
-			gaugeBmp[(gaugeCenterX + x), (gaugeCenterY + y)] = color
+			outerX = round(cos(radians(a)) * r) + gaugeCenterX
+			outerY = round(sin(radians(a)) * r) + gaugeCenterY
+			gaugeBmp[outerX,outerY] = color
+			for b in range(1,w):
+				x = round(cos(radians(a)) * (r - b)) + gaugeCenterX
+				y = round(sin(radians(a)) * (r - b)) + gaugeCenterY
+				gaugeBmp[x,y] = color
 
 
-gaugeDraw(180, 46, r+2, w+4, 40, 40, 0)
+gaugeDraw(180, 315, r+2, w+4, 40, 40, 0)
 
 while True:
 	eCO2Data = translate(sgp30.eCO2, TK, TK)
