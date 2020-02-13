@@ -1,9 +1,6 @@
 import board
-import math
 import displayio
 import busio
-import adafruit_sgp30
-import adafruit_bme280
 from math import cos
 from math import sin
 from math import radians
@@ -34,16 +31,8 @@ gaugeBmp = displayio.Bitmap(display.width, display.height, len(palette))
 gauge = displayio.TileGrid(gaugeBmp, pixel_shader=palette)
 splash.append(gauge)
 
-
-
 # show splash group
 display.show(splash)
-
-
-
-r = 70 #outer gauge radius
-w = 20 #width of guage
-
 
 def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
     OldRange = (OldMax - OldMin)
@@ -77,23 +66,23 @@ def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
                 y = round(sin(radians(a)) * (r - b)) + gaugeCenterY
                 gaugeBmp[x,y] = 3
 
+r = 70 #outer gauge radius
+w = 20 #width of guage
 firstRowX = 95
 firstRowY = 95
+
+rando2 = randint(179, 315)
+rando3 = randint(180, 315)
+rando4 = randint(189, 315)
 
 for i in range(3):
     x = (firstRowX + (r*2*i))
     gaugeDraw(315, 180, r+4, w+4, x, firstRowY, 3)
-
-
-
+    
 while True:
     rando1 = randint(179, 315)
-    rando2 = randint(179, 315)
-    rando3 = randint(180, 315)
-    rando4 = randint(189, 315)
-    print(rando1)
-    print(rando2)
     for i in range(3):
         x = (firstRowX + (r*2*i))
         gaugeDraw(rando1, rando2, r, w, x, firstRowY, 1)
-    sleep(2)
+        rando2 = rando1
+    sleep(1)
