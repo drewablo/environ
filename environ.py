@@ -28,7 +28,7 @@ splash = displayio.Group(max_size=75)
 # Background
 BGbitmap = displayio.Bitmap(display.width, display.height, 1)
 BGpalette = displayio.Palette(1)
-BGpalette[0] = 0x408890
+BGpalette[0] = 0x28565b
 BGsprite = displayio.TileGrid(BGbitmap, x=0, y=0, pixel_shader=BGpalette)
 splash.append(BGsprite)
 
@@ -107,8 +107,8 @@ firstRowX = 130
 firstRowY = 250
 gaugeMax = int(315/coveragePercent)
 gaugeMin = int(180/coveragePercent)
-eCO2Data = translate(sgp30.eCO2, 400, 5000, gaugeMin, gaugeMax)
-tvocData = translate(sgp30.TVOC, 0, 2000, gaugeMin, gaugeMax)
+eCO2Data = translate(sgp30.eCO2, 400, 60000, gaugeMin, gaugeMax)
+tvocData = translate(sgp30.TVOC, 0, 20000, gaugeMin, gaugeMax)
 eCO2Previous = eCO2Data
 tvocPrevious = tvocData
 setBacklight(0.75)
@@ -131,6 +131,12 @@ for q in range(2):
     gaugeDraw(gaugeMin,gaugeMax, r, w-4, x, firstRowY, 1, True)
 textDisplay("eCO2", font, firstRowX-r, firstRowY+20, 0x000000, splash)
 textDisplay("TVOC", font, firstRowX+10+r, firstRowY+20, 0x000000, splash)
+condition = Rect(firstRowX-r-4, 20, 160, 70, fill=0x000000)
+condition2 = Rect(firstRowX+60, 20, 275, 70, fill=0x000000)
+splash.append(condition)
+splash.append(condition2)
+textDisplay("CONDITION: ", font, firstRowX-r+5, 55, 0xFFFFFF, splash)
+textDisplay("PLACEHOLDER", font, firstRowX+65, 55, 0xFFFFFF, splash)
 textDisplay(str(sgp30.eCO2), font, firstRowX, firstRowY-10, 0x000000, splash)
 textDisplay(str(sgp30.TVOC), font, firstRowX+2*r+10, firstRowY-10, 0x000000, splash)
 print(str(len(splash)))
@@ -138,8 +144,8 @@ print(str(len(splash)))
 while True:
     print("eCO2: " + str(sgp30.eCO2))
     print("tvoc: " + str(sgp30.TVOC))
-    eCO2Data = translate(sgp30.eCO2, 400, 15000, gaugeMin, gaugeMax)
-    tvocData = translate(sgp30.TVOC, 0, 7500, gaugeMin, gaugeMax)
+    eCO2Data = translate(sgp30.eCO2, 400, 60000, gaugeMin, gaugeMax)
+    tvocData = translate(sgp30.TVOC, 0, 20000, gaugeMin, gaugeMax)
     gaugeDraw(eCO2Data, eCO2Previous, r, w-4, firstRowX, firstRowY, 1)
     gaugeDraw(tvocData, tvocPrevious, r, w-4, (firstRowX+(r*2+10)), firstRowY, 1)
     sleep(.5)
