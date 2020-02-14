@@ -1,13 +1,20 @@
 import board
-import math
 import displayio
 import busio
 import adafruit_sgp30
-import adafruit_bme280
+from adafruit_display_shapes.rect import Rect
 from math import cos
 from math import sin
 from math import radians
 from time import time
+from time import sleep
+from random import randint
+from adafruit_bitmap_font import bitmap_font
+from adafruit_display_text.label import Label
+
+cwd = ("/"+__file__).rsplit('/', 1)[0]
+font = bitmap_font.load_font(cwd+"/fonts/Noto-18.bdf")
+font.load_glyphs("0123456789.TVOCeC".encode('utf-8'))
 
 i2c = busio.I2C(board.SCL, board.SDA, frequency=100000)
 
@@ -15,16 +22,13 @@ sgp30 = adafruit_sgp30.Adafruit_SGP30(i2c)
 sgp30.iaq_init()
 sgp30.set_iaq_baseline(0x8973, 0x8aae)
 
-bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
-bme280.sea_level_pressure = 1013.25
-
 display = board.DISPLAY
-splash = displayio.Group(max_size=50)
+splash = displayio.Group(max_size=75)
 
 # Background
-BGbitmap = displayio.Bitmap(320, 240, 1)
+BGbitmap = displayio.Bitmap(display.width, display.height, 1)
 BGpalette = displayio.Palette(1)
-BGpalette[0] = 0x50b0a8
+BGpalette[0] = 0x408890
 BGsprite = displayio.TileGrid(BGbitmap, x=0, y=0, pixel_shader=BGpalette)
 splash.append(BGsprite)
 
@@ -34,7 +38,6 @@ palette[0] = 0x000000
 palette[1] = 0x97f3e8 #lightturq
 palette[2] = 0x50b0a8 #medturk
 palette[3] - 0x408890 #darkturq
-
 palette.make_transparent(0)
 
 # Create gauge bitmap
@@ -45,89 +48,101 @@ splash.append(gauge)
 # show splash group
 display.show(splash)
 
-eCO2Data = translate(sgp30.eCO2, TK, TK)
-tvocData = translate(sgp30.TVOC, TK, TK)
-tempData = bme280.temperature
-# convert temperature (C-->F)
-tempData = translate((int(tempData) * 1.8 + 32), TK, TK)
-humidData = translate(bme280.humidity, TK, TK)
-pressureData = translate(bme280.pressure, TK, TK)
+r = 110 #outer gauge radius
+w = 30 #width of guage
 
-tempPrevious = eCO2Data
-humidPrevious = tvocData
-pressurePrevious = tempData
-eCO2Previous = humidData
-tvocPrevious = pressureData
+def textDisplay(displayString, displayFont, xLoc, yLoc, textColor, screen):
+    displayText = Label(displayFont, text=displayString)
+    displayText.x = xLoc
+    displayText.y = yLoc
+    displayText.color = textColor
+    screen.append(displayText)
+    
+def translate(val, OldMin, OldMax, NewMin, NewMax):
+    OldRange = (OldMax - OldMin)
+    NewRange = (NewMax - NewMin)
+    newVal = int((((val - OldMin) * NewRange) / OldRange) + NewMin)
+    return newVal
 
-r = 30 #outer gauge radius
-w = 10 #width of guage
-class Timer:
-	def __init__(self,timer_period):
-		self.timer_period = timer_period
-		self.update_timer()
-	def update_timer(self):
-		self.last_time = time()*100
-		self.timer_expires = self.last_time + self.timer_period
-	def has_timer_expired(self):
-		if time()*100 > self.timer_expires:
-			self.update_timer()
-			return 1
-		else:
-			return 0
+def setBacklight(val):
+    val = max(0, min(1.0, val))
+    board.DISPLAY.auto_brightness = False
+    board.DISPLAY.brightness = val
+    
 
-timer = Timer(5)
+def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color, setUP = False):
+    if newVal == oldVal:
+        pass
+    elif newVal > oldVal:
+        if setUP == False:
+            splash.pop()
+            splash.pop()
+            textDisplay(str(sgp30.eCO2), font, firstRowX, firstRowY-10, 0x000000, splash)
+            textDisplay(str(sgp30.TVOC), font, firstRowX+2*r+10, firstRowY-10, 0x000000, splash)
+        for i in range(oldVal, newVal):
+            outerX = round(cos(radians(i * coveragePercent)) * r) + gaugeCenterX
+            outerY = round(sin(radians(i * coveragePercent)) * r) + gaugeCenterY
+            gaugeBmp[outerX,outerY] = color
+            for q in range(w):
+                x = round(cos(radians(i * coveragePercent)) * (r-q)) + gaugeCenterX
+                y = round(sin(radians(i * coveragePercent)) * (r-q)) + gaugeCenterY
+                gaugeBmp[x,y] = color
+    elif newVal < oldVal:
+        if setUP == False:
+            splash.pop()
+            splash.pop()
+            textDisplay(str(sgp30.eCO2), font, firstRowX, firstRowY-10, 0x000000, splash)
+            textDisplay(str(sgp30.TVOC), font, firstRowX+2*r+10, firstRowY-10, 0x000000, splash)
+        for a in range(oldVal, newVal, -1):
+            outerX = round(cos(radians(a * coveragePercent)) * r) + gaugeCenterX
+            outerY = round(sin(radians(a * coveragePercent)) * r) + gaugeCenterY
+            gaugeBmp[outerX,outerY] = 3
+            for b in range(w):
+                x = round(cos(radians(a * coveragePercent)) * (r - b)) + gaugeCenterX
+                y = round(sin(radians(a * coveragePercent)) * (r - b)) + gaugeCenterY
+                gaugeBmp[x,y] = 3
 
-def translate(val, OldMin, OldMax, NewMin = 180, NewMax = 90):
-	OldRange = (OldMax - OldMin)  
-	NewRange = (NewMax - NewMin)  
-	newVal = (((val - OldMin) * NewRange) / OldRange) + NewMin
-	print(newVal)
-	return newVal
+coveragePercent = .25
+firstRowX = 130
+firstRowY = 250
+gaugeMax = int(315/coveragePercent)
+gaugeMin = int(180/coveragePercent)
+eCO2Data = translate(sgp30.eCO2, 400, 5000, gaugeMin, gaugeMax)
+tvocData = translate(sgp30.TVOC, 0, 2000, gaugeMin, gaugeMax)
+eCO2Previous = eCO2Data
+tvocPrevious = tvocData
+setBacklight(0.75)
 
-def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
-	if newVal == oldVal:
-		pass
-	elif newVal > oldVal:
-		for i in range(180, newVal, -1):
-			outerX = round(cos(radians(i)) * r) + gaugeCenterX
-			outerY = round(sin(radians(i)) * r) + gaugeCenterY
-			gaugeBmp[outerX,outerY] = color
-			for q in range(1,w):
-				x = round(cos(radians(i)) * (r-q)) + gaugeCenterX
-				y = round(sin(radians(i)) * (r-q)) + gaugeCenterY
-				gaugeBmp[x,y] = color
-	elif newVal < oldVal:
-		for a in range(oldVal, (newVal - 1), -1):
-			outerX = round(cos(radians(a)) * r) + gaugeCenterX
-			outerY = round(sin(radians(a)) * r) + gaugeCenterY
-			gaugeBmp[outerX,outerY] = color
-			for b in range(1,w):
-				x = round(cos(radians(a)) * (r - b)) + gaugeCenterX
-				y = round(sin(radians(a)) * (r - b)) + gaugeCenterY
-				gaugeBmp[x,y] = color
-
-
-gaugeDraw(180, 315, r+2, w+4, 40, 40, 0)
+rect1a = Rect(firstRowX-r-4, firstRowY, r*2-10, 2, fill=0x000000)
+rect1b = Rect(firstRowX+r-15, firstRowY-r, 8, r+2, fill=0x000000)
+rect2a = Rect(firstRowX+r*2+6-r, firstRowY, r*2-10, 2, fill=0x000000)
+rect2b = Rect(firstRowX+3*r-5, firstRowY-r, 8, r+2, fill=0x000000)
+splash.append(rect1a)
+splash.append(rect1b)
+splash.append(rect2a)
+splash.append(rect2b)
+for i in range(2):
+    x = (firstRowX + ((r*2+10)*i))
+    gaugeDraw(gaugeMax, gaugeMin, r+4, w+4, x, firstRowY, 3, True)
+    gaugeDraw(317/coveragePercent, 315/coveragePercent, r+15, w+30, x, firstRowY, 3, True)
+for q in range(2):
+    x = (firstRowX + ((r*2+10)*q))
+    gaugeDraw(gaugeMax,gaugeMin, r, w-4, x, firstRowY, 1, True)
+    gaugeDraw(gaugeMin,gaugeMax, r, w-4, x, firstRowY, 1, True)
+textDisplay("eCO2", font, firstRowX-r, firstRowY+20, 0x000000, splash)
+textDisplay("TVOC", font, firstRowX+10+r, firstRowY+20, 0x000000, splash)
+textDisplay(str(sgp30.eCO2), font, firstRowX, firstRowY-10, 0x000000, splash)
+textDisplay(str(sgp30.TVOC), font, firstRowX+2*r+10, firstRowY-10, 0x000000, splash)
+print(str(len(splash)))
 
 while True:
-	eCO2Data = translate(sgp30.eCO2, TK, TK)
-	tvocData = translate(sgp30.TVOC, TK, TK)
-	tempData = bme280.temperature
-	# convert temperature (C-->F)
-	tempData = translate((int(tempData) * 1.8 + 32), TK, TK)
-	humidData = translate(bme280.humidity, TK, TK)
-	pressureData = translate(bme280.pressure, TK, TK)
-
-	if has_timer_expired():
-		gaugeDraw(tempData, tempPrevious r, w, 40, 40, 1)
-		gaugeDraw(humidData, humidPrevious,  r, w, 80, 80, 1)
-		gaugeDraw(pressureData, pressurePrevious, r, w, 120, 120, 1)
-
-		gaugeDraw(eCO2Data, eCO2Previous r, w, 100, 40, 1)
-		gaugeDraw(tvocData, tvocPrevious r, w, 140, 80, 1)
-
-	tempPrevious = eCO2Data
-	humidPrevious = tvocData
-	pressurePrevious = tempData
-	eCO2Previous = humidData
-	tvocPrevious = pressureData
+    print("eCO2: " + str(sgp30.eCO2))
+    print("tvoc: " + str(sgp30.TVOC))
+    eCO2Data = translate(sgp30.eCO2, 400, 15000, gaugeMin, gaugeMax)
+    tvocData = translate(sgp30.TVOC, 0, 7500, gaugeMin, gaugeMax)
+    gaugeDraw(eCO2Data, eCO2Previous, r, w-4, firstRowX, firstRowY, 1)
+    gaugeDraw(tvocData, tvocPrevious, r, w-4, (firstRowX+(r*2+10)), firstRowY, 1)
+    sleep(.5)
+    print(str(len(splash)))
+    eCO2Previous = eCO2Data
+    tvocPrevious = tvocData
