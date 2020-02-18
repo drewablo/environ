@@ -70,36 +70,53 @@ yCenter = 200
 xCenter = 300
 y = yCenter
 while True:
-	maxY = round(sin(radians(225)) * r ) + yCenter
-	maxY2 = round(sin(radians(225)) * w) + wCenter
+	maxY1 = round(sin(radians(225)) * r ) + yCenter
+	maxY2 = round(sin(radians(225)) * w) + yCenter
 	minY = round(sin(radians(180)) * r) + yCenter
-	maxAngle = asin((yCenter - maxY)/r)
-	print(maxY)
+	maxAngle = asin((yCenter - maxY1)/r)
+	print(maxY1)
 	print(minY)
 	sleep(1)
 	previousLength = r-w	
-	for y in range(minY, maxY, -1):
-		theta1 = asin((yCenter - y)/r)
-		theta2 = asin((yCenter - y)/w)
-		print("W: " + str(w))
-		x1 = round(cos((theta1)) * r) + xCenter
-		x2 = round(cos((theta2)) * w) + xCenter
-		l = x1 - x2
-		print("L: " + str(l))
-		if yCenter - y > w:
+	for y in range(minY, maxY1, -1):
+		if y > maxY2:
+			theta1 = asin((yCenter - y)/r)
+			theta2 = asin((yCenter - y)/w)
+			print("W: " + str(w))
+			x1 = round(cos((theta1)) * r) + xCenter
+			x2 = round(cos((theta2)) * w) + xCenter
+			l = x1 - x2
+			for x in range(x2, x1):
+				pt = Point(x,y)
+				pt.draw(win)
+			line(x1, y, x2, y)
+			print("theta1: " + str(theta1))
+			print("theta2: " + str(theta2))
+			print("y: " + str(y))
+			print("x1: " + str(x1))
+			print("x2: " + str(x2))
+			previousLength = l
+		else:
 			w += 1
-			print("SWITCH")
-		for x in range(x2, x1):
-
-			pt = Point(x,y)
-			pt.draw(win)
-		line(x1, y, x2, y)
-		print("theta1: " + str(theta1))
-		print("theta2: " + str(theta2))
-		print("y: " + str(y))
-		print("x1: " + str(x1))
-		print("x2: " + str(x2))
-		previousLength = l
+			theta1 = asin((yCenter - y)/r)
+			theta2 = asin((yCenter - y)/w)
+			print("W: " + str(w))
+			x1 = round(cos((theta1)) * r) + xCenter
+			x2 = round(cos((theta2)) * w) + xCenter
+			l = x1 - x2
+			print("L: " + str(l))
+			if yCenter - y > w:
+				w += 1
+				print("SWITCH")
+			for x in range(x2, x1):
+				pt = Point(x,y)
+				pt.draw(win)
+			line(x1, y, x2, y)
+			print("theta1: " + str(theta1))
+			print("theta2: " + str(theta2))
+			print("y: " + str(y))
+			print("x1: " + str(x1))
+			print("x2: " + str(x2))
+			previousLength = l
 	sleep(2)
 	break
-
