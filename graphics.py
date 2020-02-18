@@ -3,6 +3,7 @@ import displayio
 import busio
 from math import cos
 from math import sin
+from math import asin
 from math import radians
 from time import time
 from time import sleep
@@ -35,30 +36,49 @@ splash.append(gauge)
 display.show(splash)
 
 r = 70 #outer gauge radius
-w = 20 #width of guage
+iRad = 20 #inner gauge radius
 
-def gaugeDraw(newVal, oldVal, r, w, gaugeCenterX, gaugeCenterY, color):
+def gaugeDraw(newVal, oldVal, r, iRad, gaugeCenterX, gaugeCenterY, color, setUp = False):
+    y = gaugeCenterY
     if newVal == oldVal:
         pass
     elif newVal > oldVal:
-        for i in range(oldVal, newVal):
-            outerX = round(cos(radians(i)) * r) + gaugeCenterX
-            outerY = round(sin(radians(i)) * r) + gaugeCenterY
-            gaugeBmp[outerX,outerY] = color
-            for q in range(w):
-                x = round(cos(radians(i)) * (r-q)) + gaugeCenterX
-                y = round(sin(radians(i)) * (r-q)) + gaugeCenterY
+        totalDegrees = newVal - oldVal
+        print(totalDegrees)
+        sleep(1)
+        for i in range(180, totalDegrees):
+            print("BIGGER I: " + str(i))
+            y = y+1
+            x1 = int(cos(radians(i)) * r) + gaugeCenterX#outter x
+            print("x1: " + str(x1))
+            x2 = int(cos(asin(radians(y/iRad)))*iRad) + gaugeCenterX
+            #print("x2: " + str(x2))
+            vLineRange = x2 - x1
+            #print("range " + str(vLineRange))
+            sleep(1)
+            for q in range(vLineRange):
+                x = x1 + q
                 gaugeBmp[x,y] = color
     elif newVal < oldVal:
-        for a in range(oldVal, newVal, -1):
-            outerX = round(cos(radians(a)) * r) + gaugeCenterX
-            outerY = round(sin(radians(a)) * r) + gaugeCenterY
-            gaugeBmp[outerX,outerY] = 3
-            for b in range(w):
-                x = round(cos(radians(a)) * (r - b)) + gaugeCenterX
-                y = round(sin(radians(a)) * (r - b)) + gaugeCenterY
+        maxY = int(sin(radians(oldVal)) * r) + gaugeCenterY
+        minY = int(sin(radians(newVal)) * r) + gaugeCenterY
+        totalDegrees = oldVal - newVal
+        print(totalDegrees)
+        for i in range(maxY, minY, -1):
+            print("I: " + str(i))
+            y = y-1
+            x1 = int(cos(radians(i)) * r) + gaugeCenterX
+            print("x1: " + str(x1))
+            a2 = int(asin(radians(y/iRad)))
+            a2 = a2 - i
+            x2 = int(cos(asin(radians(y/iRad)))*iRad) + gaugeCenterX
+            print("x2: " + str(x2))
+            vLineRange = abs(x1 - x2)
+            print("Vertical Line Lenght: " +str(vLineRange))
+            for q in range(vLineRange):
+                x = x1 + q
                 gaugeBmp[x,y] = 3
-
+ 
 firstRowX = 95
 firstRowY = 95
 
@@ -68,12 +88,12 @@ rando4 = randint(189, 315)
 
 for i in range(3):
     x = (firstRowX + (r*2*i))
-    gaugeDraw(315, 180, r+4, w+4, x, firstRowY, 3)
-    
+    gaugeDraw(180, 315, r+4, iRad+4, x, firstRowY, 3)
+
 while True:
     rando1 = randint(179, 315)
     for i in range(3):
         x = (firstRowX + (r*2*i))
-        gaugeDraw(rando1, rando2, r, w, x, firstRowY, 1)
+        gaugeDraw(rando1, rando2, r, iRad, x, firstRowY, 1)
         rando2 = rando1
     sleep(1)
